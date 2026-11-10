@@ -1,0 +1,2 @@
+import ReviewPanel from "./review-panel";
+export default function Home() { return <main className="shell"><div className="top"><span className="logo">⌘</span><span>CodePilot <strong>AI</strong></span><span className="pill">Prototype</span></div><section className="hero"><p className="eyebrow">DEVELOPER WORKSPACE · EARLY PREVIEW</p><h1>Review code with more clarity.</h1><p>Experiment with a basic local-rule code review. AI analysis and suggested fixes are planned, not implemented.</p></section><ReviewPanel/><footer>CodePilot AI · Prototype stage</footer></main>; }
