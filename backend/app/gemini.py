@@ -40,6 +40,7 @@ def ai_review(code: str, language: str) -> dict:
         result = json.loads("".join(part.get("text", "") for part in parts))
         if not isinstance(result, dict) or not isinstance(result.get("summary"), str) or not isinstance(result.get("suggestions"), list):
             raise ValueError("Invalid AI review shape")
+        source_lines = max(1, len(code.splitlines()))
         suggestions = []
         for item in result["suggestions"][:20]:
             if not isinstance(item, dict):
@@ -47,9 +48,9 @@ def ai_review(code: str, language: str) -> dict:
             severity = item.get("severity")
             message = item.get("message")
             line = item.get("line")
-            if severity not in ("high", "medium", "low") or not isinstance(message, str) or not isinstance(line, int) or isinstance(line, bool):
+            if severity not in ("high", "medium", "low") or not isinstance(message, str) or not isinstance(line, int) or isinstance(line, bool) or line < 1 or line > source_lines:
                 continue
-            suggestions.append({"severity": severity, "line": max(1, line), "message": message[:500]})
+            suggestions.append({"severity": severity, "line": line, "message": message[:500]})
         return {"summary": result["summary"][:1200], "suggestions": suggestions}
     except (error.URLError, TimeoutError, ValueError, KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
         raise GeminiUnavailable("Gemini request failed or returned invalid output") from None
