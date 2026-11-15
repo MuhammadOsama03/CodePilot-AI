@@ -5,6 +5,8 @@ from .review_rules import review
 from .summary import summarize
 from .limits import MAX_SOURCE_CHARACTERS
 from .gemini import ai_review, GeminiUnavailable
+from .finding_metrics import affected_lines, rule_counts
+from .source_validation import source_is_meaningful, source_has_null_bytes
 
 app = FastAPI(title="CodePilot AI API", version="0.5.0")
 app.add_middleware(
@@ -25,10 +27,12 @@ def health():
 
 @app.post("/review")
 def review_code(payload: ReviewRequest):
-    if not payload.code.strip():
+    if not source_is_meaningful(payload.code):
         raise HTTPException(status_code=422, detail="Source code must contain non-whitespace characters")
+    if source_has_null_bytes(payload.code):
+        raise HTTPException(status_code=422, detail="Source code must not contain null bytes")
     findings = review(payload.code, payload.language)
-    result = {"language": payload.language, "findings": findings, "summary": summarize(findings),
+    result = {"language": payload.language, "findings": findings, "summary": summarize(findings), "affected_lines": affected_lines(findings), "rule_counts": rule_counts(findings),
               "engine": "local-rules", "disclaimer": "Heuristic hints only; not a comprehensive audit or AI review."}
     if payload.use_ai:
         try:
