@@ -29,3 +29,14 @@ class ApiTests(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["access-control-allow-origin"], "http://localhost:3000")
+
+    def test_review_metrics_are_in_response(self):
+        response = self.client.post("/review", json={"language": "python", "code": "print('hello')"})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["affected_lines"], [1])
+        self.assertEqual(data["rule_counts"]["debug-output"], 1)
+
+    def test_reject_null_bytes(self):
+        response = self.client.post("/review", json={"language": "python", "code": "x = 1\\u0000"})
+        self.assertEqual(response.status_code, 422)
