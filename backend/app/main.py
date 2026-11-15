@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from .review_rules import review
@@ -25,6 +25,8 @@ def health():
 
 @app.post("/review")
 def review_code(payload: ReviewRequest):
+    if not payload.code.strip():
+        raise HTTPException(status_code=422, detail="Source code must contain non-whitespace characters")
     findings = review(payload.code, payload.language)
     result = {"language": payload.language, "findings": findings, "summary": summarize(findings),
               "engine": "local-rules", "disclaimer": "Heuristic hints only; not a comprehensive audit or AI review."}
