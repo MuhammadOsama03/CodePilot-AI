@@ -11,6 +11,12 @@ class GeminiTests(unittest.TestCase):
             with self.assertRaises(GeminiUnavailable):
                 ai_review("print('hello')", "python")
 
+    def test_disallowed_model_fails_before_network_request(self):
+        with patch.dict(os.environ, {"GEMINI_API_KEY": "test-placeholder", "GEMINI_MODEL": "unapproved-model"}):
+            with patch("app.gemini.request.urlopen", side_effect=AssertionError("network should not be called")):
+                with self.assertRaises(GeminiUnavailable):
+                    ai_review("print(1)", "python")
+
     def test_ai_opt_in_falls_back_without_key(self):
         with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
             response = TestClient(app).post("/review", json={"language": "python", "code": "print('hello')", "use_ai": True})
