@@ -17,6 +17,10 @@ class ApiTests(unittest.TestCase):
     def test_reject_unknown_language(self):
         self.assertEqual(self.client.post("/review", json={"language": "ruby", "code": "puts 1"}).status_code, 422)
 
+    def test_reject_whitespace_only_code(self):
+        response = self.client.post("/review", json={"language": "python", "code": "  \n  "})
+        self.assertEqual(response.status_code, 422)
+
     def test_local_preflight(self):
         response = self.client.options("/review", headers={
             "Origin": "http://localhost:3000",
