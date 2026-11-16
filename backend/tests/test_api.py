@@ -38,5 +38,5 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(data["rule_counts"]["debug-output"], 1)
 
     def test_reject_null_bytes(self):
-        response = self.client.post("/review", json={"language": "python", "code": "x = 1\\u0000"})
+        response = self.client.post("/review", json={"language": "python", "code": "x = 1" + chr(0)})
         self.assertEqual(response.status_code, 422)
