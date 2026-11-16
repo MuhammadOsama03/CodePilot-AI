@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from .review_rules import review
@@ -7,6 +7,7 @@ from .limits import MAX_SOURCE_CHARACTERS
 from .gemini import ai_review, GeminiUnavailable
 from .finding_metrics import affected_lines, rule_counts
 from .source_validation import source_is_meaningful, source_has_null_bytes
+from .history import save_review, list_reviews
 
 app = FastAPI(title="CodePilot AI API", version="0.5.0")
 app.add_middleware(
@@ -25,6 +26,10 @@ class ReviewRequest(BaseModel):
 def health():
     return {"status": "ok", "phase": "prototype"}
 
+@app.get("/reviews")
+def review_history(limit: int = Query(default=20, ge=1, le=100)):
+    return {"reviews": list_reviews(limit)}
+
 @app.post("/review")
 def review_code(payload: ReviewRequest):
     if not source_is_meaningful(payload.code):
@@ -40,4 +45,8 @@ def review_code(payload: ReviewRequest):
             result["engine"] = "gemini+local-rules"
         except GeminiUnavailable:
             result["ai_warning"] = "AI review unavailable; local rules used instead."
+    try:
+        result["review_id"] = save_review(payload.language, result["engine"], len(findings), len(payload.code))
+    except OSError:
+        result["history_warning"] = "Review completed but history could not be saved."
     return result
