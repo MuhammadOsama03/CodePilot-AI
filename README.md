@@ -11,8 +11,8 @@ Paste source code, select a language, and request a review that highlights poten
 - **Frontend:** Next.js, React, TypeScript
 - **Backend:** Python, FastAPI
 - **AI integration:** Optional Gemini API with server-side key management and local fallback
-- **Persistence (planned Nov 16):** SQLite
-- **Testing:** Python unit tests exist; end-to-end verification and CI are pending
+- **Persistence:** SQLite metadata-only review history (see [history documentation](docs/HISTORY.md))
+- **Testing:** Python unit tests run in GitHub Actions; frontend and end-to-end verification remain pending
 
 ## Development stages
 
@@ -21,6 +21,7 @@ Paste source code, select a language, and request a review that highlights poten
 - [x] Implement review UI (runtime verification pending)
 - [x] Implement backend analysis endpoint and input validation
 - [x] Implement opt-in Gemini provider with local fallback (live credentials not verified)
-- [ ] Add history, tests, CI, and deployment documentation
+- [x] Add metadata-only SQLite history, tests and backend CI
+- [ ] Add authentication, frontend history UI, integration tests and deployment verification
 
 > API and UI source code are present, but a deployed, end-to-end working AI review has not been demonstrated. Configure `GEMINI_API_KEY` only on the backend; do not use a `NEXT_PUBLIC_` key. Do not submit secrets or code you are not authorized to share. The rule-based review is heuristic, not a security certification.
