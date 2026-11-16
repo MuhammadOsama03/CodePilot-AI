@@ -1,3 +1,4 @@
+import sqlite3
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -47,6 +48,6 @@ def review_code(payload: ReviewRequest):
             result["ai_warning"] = "AI review unavailable; local rules used instead."
     try:
         result["review_id"] = save_review(payload.language, result["engine"], len(findings), len(payload.code))
-    except OSError:
+    except (OSError, sqlite3.Error):
         result["history_warning"] = "Review completed but history could not be saved."
     return result
