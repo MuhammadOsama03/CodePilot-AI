@@ -8,7 +8,7 @@
 - Set `GEMINI_API_KEY` **only in the backend runtime secret store**; omit to use local review only.
 
 ## Deployment blockers / cautions
-- The backend CORS allowlist is currently limited to localhost; update it to explicitly allow the production frontend origin before a split-origin deployment.
+- Set `CODEPILOT_ALLOWED_ORIGINS` to a comma-separated list of exact HTTPS frontend origins (for example `https://app.example.com`). Wildcard `*` is ignored. Localhost origins are the development default.
 - There is no user authentication or rate limiting. Do not expose review history or costly Gemini calls as an unrestricted public service.
 - The review endpoint accepts source code and may forward it to Gemini when AI is enabled. Only submit code you are authorized to share.
 - SQLite history contains metadata, not submitted source. Use one backend instance with persistent storage.
