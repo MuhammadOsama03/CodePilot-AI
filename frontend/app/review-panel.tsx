@@ -8,6 +8,8 @@ type HistoryEntry = {id:number;created_at:string;language:string;engine:string;f
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function ReviewPanel() {
+  const [token, setToken] = useState("");
+  const authorization: Record<string, string> = token ? {Authorization: `Bearer ${token}`} : {};
   const [code,setCode] = useState("const answer = 42;");
   const [language,setLanguage] = useState("javascript");
   const [useAi,setUseAi] = useState(false);
@@ -23,7 +25,7 @@ export default function ReviewPanel() {
     setHistoryError("");
     try {
       const response = await fetch(API + "/reviews?limit=20", {
-        cache: "no-store", signal: AbortSignal.timeout(10000)
+        cache: "no-store", headers: authorization, signal: AbortSignal.timeout(10000)
       });
       if (!response.ok) throw new Error(`History API returned HTTP ${response.status}.`);
       const data = await response.json();
@@ -40,7 +42,7 @@ export default function ReviewPanel() {
     setBusy(true); setError(""); setResult(null);
     try {
       const response = await fetch(API + "/review", {
-        method:"POST",headers:{"Content-Type":"application/json"},
+        method:"POST",headers:{"Content-Type":"application/json", ...authorization},
         body:JSON.stringify({language,code,use_ai:useAi}),signal:AbortSignal.timeout(30000)
       });
       if (!response.ok) throw new Error(response.status === 422 ? "Check language and source length (maximum 50,000 characters)." : `Review API returned HTTP ${response.status}.`);
@@ -53,6 +55,8 @@ export default function ReviewPanel() {
   }
   return <section className="review" aria-label="Code review workspace">
     <div className="reviewhead"><div><h2>Code review workspace</h2><p>Paste source code to get heuristic findings and optional Gemini feedback.</p></div><span className="counter">{code.length.toLocaleString()} / 50,000</span></div>
+    <label htmlFor="review-token">Operator token (if configured)</label>
+    <input id="review-token" type="password" value={token} onChange={event => setToken(event.target.value)} autoComplete="off" />
     <label htmlFor="language">Language</label>
     <select id="language" value={language} onChange={e=>setLanguage(e.target.value)}>
       <option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option>

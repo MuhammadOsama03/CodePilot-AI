@@ -9,7 +9,7 @@
 
 ## Deployment blockers / cautions
 - Set `CODEPILOT_ALLOWED_ORIGINS` to a comma-separated list of exact HTTPS frontend origins (for example `https://app.example.com`). Wildcard `*` is ignored. Localhost origins are the development default.
-- There is no user authentication or rate limiting. Do not expose review history or costly Gemini calls as an unrestricted public service.
+- Shared-token access is available. Per-user authentication and rate limiting are pending. Do not expose review history or costly Gemini calls as an unrestricted public service.
 - The review endpoint accepts source code and may forward it to Gemini when AI is enabled. Only submit code you are authorized to share.
 - SQLite history contains metadata, not submitted source. Use one backend instance with persistent storage.
 - No production hosting credentials, domain, or deployed URL have been provided.
@@ -28,3 +28,7 @@
 - Submit a review with Gemini disabled. Refresh history and confirm that the newest row shows the review time, language, engine, and finding count.
 - Restart the backend using the same database, then confirm the row is still available. The response should contain metadata only.
 - Stop the backend and confirm that refreshing history shows an error and leaves the last successful results visible.
+
+### Operator access
+
+Set `CODEPILOT_OPERATOR_TOKEN` to a strong token in the API runtime. Requests to `/review` and `/reviews` must include `Authorization: Bearer <token>`. Enter the same token in the dashboard operator field. Use HTTPS for hosted access. With the variable unset, the API retains its local development behavior.
