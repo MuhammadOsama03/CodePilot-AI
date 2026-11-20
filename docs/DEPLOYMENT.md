@@ -21,3 +21,10 @@
 4. Verify AI-disabled and AI-failure fallback paths.
 5. Open the built frontend, run a review and inspect browser network/CORS errors.
 6. Verify TLS, secret redaction, restart persistence, access restrictions, and monitoring.
+
+### Review history UI
+
+- Start the frontend and backend with a fresh temporary database. Open **Load history** and confirm the empty state.
+- Submit a review with Gemini disabled. Refresh history and confirm that the newest row shows the review time, language, engine, and finding count.
+- Restart the backend using the same database, then confirm the row is still available. The response should contain metadata only.
+- Stop the backend and confirm that refreshing history shows an error and leaves the last successful results visible.
