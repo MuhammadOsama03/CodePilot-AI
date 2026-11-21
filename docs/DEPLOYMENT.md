@@ -9,7 +9,7 @@
 
 ## Deployment blockers / cautions
 - Set `CODEPILOT_ALLOWED_ORIGINS` to a comma-separated list of exact HTTPS frontend origins (for example `https://app.example.com`). Wildcard `*` is ignored. Localhost origins are the development default.
-- There is no user authentication or rate limiting. Do not expose review history or costly Gemini calls as an unrestricted public service.
+- Shared-token access is available. The review limit is shared across a single API process. Per-user authentication is pending. Do not expose review history or costly Gemini calls as an unrestricted public service.
 - The review endpoint accepts source code and may forward it to Gemini when AI is enabled. Only submit code you are authorized to share.
 - SQLite history contains metadata, not submitted source. Use one backend instance with persistent storage.
 - No production hosting credentials, domain, or deployed URL have been provided.
@@ -21,3 +21,16 @@
 4. Verify AI-disabled and AI-failure fallback paths.
 5. Open the built frontend, run a review and inspect browser network/CORS errors.
 6. Verify TLS, secret redaction, restart persistence, access restrictions, and monitoring.
+
+### Review history UI
+
+- Start the frontend and backend with a fresh temporary database. Open **Load history** and confirm the empty state.
+- Submit a review with Gemini disabled. Refresh history and confirm that the newest row shows the review time, language, engine, and finding count.
+- Restart the backend using the same database, then confirm the row is still available. The response should contain metadata only.
+- Stop the backend and confirm that refreshing history shows an error and leaves the last successful results visible.
+
+### Operator access
+
+Set `CODEPILOT_OPERATOR_TOKEN` to a strong token in the API runtime. Requests to `/review` and `/reviews` must include `Authorization: Bearer <token>`. Enter the same token in the dashboard operator field. Use HTTPS for hosted access. With the variable unset, the API retains its local development behavior.
+
+The review API accepts up to 30 submissions per minute per backend process. Excess requests return HTTP 429 with a Retry-After header. Use a gateway for per-client limits or multi-worker deployments.
