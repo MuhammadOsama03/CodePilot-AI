@@ -4,7 +4,7 @@ import sqlite3
 import time
 from collections import deque
 from threading import Lock
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from .review_rules import review
@@ -23,8 +23,13 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+router = APIRouter()
+
+
 def require_operator(authorization: str = Header(default="")) -> None:
     token = os.environ.get("CODEPILOT_OPERATOR_TOKEN", "")
+    if os.environ.get("VERCEL") == "1" and not token:
+        raise HTTPException(status_code=503, detail="Operator token is not configured")
     if token and not hmac.compare_digest(
         authorization.encode("utf-8"), f"Bearer {token}".encode("utf-8")
     ):
@@ -59,15 +64,15 @@ class ReviewRequest(BaseModel):
     code: str = Field(min_length=1, max_length=MAX_SOURCE_CHARACTERS)
     use_ai: bool = False
 
-@app.get("/health")
+@router.get("/health")
 def health():
     return {"status": "ok", "phase": "prototype"}
 
-@app.get("/reviews", dependencies=[Depends(require_operator)])
+@router.get("/reviews", dependencies=[Depends(require_operator)])
 def review_history(limit: int = Query(default=20, ge=1, le=100)):
     return {"reviews": list_reviews(limit)}
 
-@app.post("/review", dependencies=[Depends(require_operator), Depends(limit_reviews)])
+@router.post("/review", dependencies=[Depends(require_operator), Depends(limit_reviews)])
 def review_code(payload: ReviewRequest):
     if not source_is_meaningful(payload.code):
         raise HTTPException(status_code=422, detail="Source code must contain non-whitespace characters")
@@ -87,3 +92,6 @@ def review_code(payload: ReviewRequest):
     except (OSError, sqlite3.Error):
         result["history_warning"] = "Review completed but history could not be saved."
     return result
+
+
+app.include_router(router, prefix="/api" if os.environ.get("VERCEL") == "1" else "")

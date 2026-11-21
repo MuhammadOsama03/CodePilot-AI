@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 def database_path() -> Path:
-    return Path(os.environ.get("CODEPILOT_DB_PATH", "codepilot-history.sqlite3"))
+    default_path = "/tmp/codepilot-history.sqlite3" if os.environ.get("VERCEL") == "1" else "codepilot-history.sqlite3"
+    return Path(os.environ.get("CODEPILOT_DB_PATH", default_path))
 
 def connect():
     path = database_path()

@@ -5,7 +5,7 @@ type Finding = {rule:string;severity:string;line:number;message:string};
 type Summary = {total:number;by_severity?:Record<string,number>};
 type ReviewResult = {language:string;findings:Finding[];summary?:Summary;engine:string;ai_review?:unknown;ai_warning?:string;disclaimer?:string};
 type HistoryEntry = {id:number;created_at:string;language:string;engine:string;finding_count:number;source_characters:number};
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_VERCEL_URL ? "/api" : "http://localhost:8000");
 
 export default function ReviewPanel() {
   const [token, setToken] = useState("");
