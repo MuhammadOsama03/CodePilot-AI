@@ -1,6 +1,9 @@
 import hmac
 import os
 import sqlite3
+import time
+from collections import deque
+from threading import Lock
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -32,6 +35,25 @@ def require_operator(authorization: str = Header(default="")) -> None:
         )
 
 
+review_times: deque[float] = deque()
+review_rate_lock = Lock()
+
+
+def limit_reviews() -> None:
+    with review_rate_lock:
+        now = time.monotonic()
+        while review_times and now - review_times[0] >= 60:
+            review_times.popleft()
+        if len(review_times) >= 30:
+            retry_after = max(1, 60 - int(now - review_times[0]))
+            raise HTTPException(
+                status_code=429,
+                detail="Review limit reached. Try again shortly.",
+                headers={"Retry-After": str(retry_after)},
+            )
+        review_times.append(now)
+
+
 class ReviewRequest(BaseModel):
     language: str = Field(pattern=r"^(python|javascript|typescript)$")
     code: str = Field(min_length=1, max_length=MAX_SOURCE_CHARACTERS)
@@ -45,7 +67,7 @@ def health():
 def review_history(limit: int = Query(default=20, ge=1, le=100)):
     return {"reviews": list_reviews(limit)}
 
-@app.post("/review", dependencies=[Depends(require_operator)])
+@app.post("/review", dependencies=[Depends(require_operator), Depends(limit_reviews)])
 def review_code(payload: ReviewRequest):
     if not source_is_meaningful(payload.code):
         raise HTTPException(status_code=422, detail="Source code must contain non-whitespace characters")

@@ -23,7 +23,8 @@ Paste source code, select a language, and request a review that highlights poten
 - [x] Implement opt-in Gemini provider with local fallback (live credentials not verified)
 - [x] Add metadata-only SQLite history, tests and backend CI
 - [x] Add a frontend view for saved review metadata
-- [ ] Add authentication, rate limiting, browser integration tests and deployment verification
+- [x] Add optional operator access and a single-process review limit
+- [ ] Complete browser integration tests and deployment verification
 
 > API and UI source code are present, but a deployed, end-to-end working AI review has not been demonstrated. Configure `GEMINI_API_KEY` only on the backend; do not use a `NEXT_PUBLIC_` key. Do not submit secrets or code you are not authorized to share. The rule-based review is heuristic, not a security certification.
 
@@ -31,4 +32,4 @@ Paste source code, select a language, and request a review that highlights poten
 
 Source-level features include local rule-based reviews, optional Gemini calls with fallback, metadata-only SQLite review history, and a Next.js review interface. The backend supports `CODEPILOT_ALLOWED_ORIGINS` for explicitly configured frontend origins. The latest pre-closeout `main` CI run on November 17 succeeded; check [current Actions](https://github.com/MuhammadOsama03/CodePilot-AI/actions) for results of November 18 changes. No Gemini credential, live deployed endpoint or browser-to-backend smoke test was available for this closeout. No production deployment is claimed.
 
-**Remaining release blockers:** per-user authentication and authorization, rate limiting and abuse protection, persistent-volume configuration, production TLS/hosting, explicit CORS configuration, real Gemini response verification, and end-to-end browser tests. Until these are addressed, keep the API private. See [deployment checklist](docs/DEPLOYMENT.md).
+**Remaining release blockers:** per-user authentication and authorization, per-client gateway controls, persistent-volume configuration, production TLS/hosting, explicit CORS configuration, real Gemini response verification, and end-to-end browser tests. Until these are addressed, keep the API private. See [deployment checklist](docs/DEPLOYMENT.md).
